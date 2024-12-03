@@ -64,37 +64,90 @@ func Solve2() {
 			level, _ := strconv.Atoi(entry)
 			levels = append(levels, level)
 		}
-		if isSafe(levels) {
-			log.Printf("Safe: %v\n", levels)
-			safeCount++
+		log.Println("")
+		log.Printf("Checking: %v\n", levels)
+
+		diffs := calcDiffs(levels)
+		log.Printf("Diffs: %v\n", diffs)
+		posCount, negCount, zeroCount := 0, 0, 0
+		for _, diff := range diffs {
+			if diff > 0 {
+				posCount++
+			} else if diff < 0 {
+				negCount++
+			} else {
+				zeroCount++
+			}
+		}
+		if posCount == len(diffs) || negCount == len(diffs) {
+			log.Println("All pos or all neg")
+			if isInRange(diffs) {
+				log.Printf("Safe: %v\n", levels)
+				safeCount++
+			}
 			continue
 		}
-
-		prevDiff := 0
-		signChangeIndex := -1
-		for i := 0; i < len(levels)-1; i++ {
-			diff := levels[i] - levels[i+1]
-			if prevDiff != 0 && (diff == 0 || diff > 0 && prevDiff < 0 || diff < 0 && prevDiff > 0) {
-				signChangeIndex = i
-				break
-			}
-			prevDiff = diff
-		}
-		log.Printf("Trying skips for: %v\n", levels)
-		if signChangeIndex != -1 {
-			log.Printf("Sign change at %d\n", signChangeIndex)
-			levelsWithSkip1 := append(levels[:signChangeIndex], levels[signChangeIndex+1:]...)
-			if isSafe(levelsWithSkip1) {
-				log.Printf("Safe: %v\n", levelsWithSkip1)
+		if posCount == len(diffs)-1 {
+			log.Println("All but one pos")
+			skipIndex := indexOf(diffs, func(diff int) bool { return diff == 0 || diff < 0 })
+			if isSafeWithSkip(levels, skipIndex) {
 				safeCount++
-			} else if signChangeIndex+2 < len(levels) {
-				levelsWithSkip2 := append(levels[:signChangeIndex+1], levels[signChangeIndex+2:]...)
-				if isSafe(levelsWithSkip2) {
-					log.Printf("Safe: %v\n", levelsWithSkip2)
-					safeCount++
-				}
 			}
+			continue
+		}
+		if negCount == len(diffs)-1 {
+			log.Println("All but one neg")
+			skipIndex := indexOf(diffs, func(diff int) bool { return diff == 0 || diff > 0 })
+			if isSafeWithSkip(levels, skipIndex) {
+				safeCount++
+			}
+			continue
 		}
 	}
 	fmt.Println(safeCount)
+}
+
+func calcDiffs(levels []int) []int {
+	diffs := make([]int, 0, len(levels)-1)
+	for i := 0; i < len(levels)-1; i++ {
+		diffs = append(diffs, levels[i]-levels[i+1])
+	}
+	return diffs
+}
+
+func isInRange(diffs []int) bool {
+	for _, diff := range diffs {
+		absDiff := int(math.Abs(float64(diff)))
+		if !(0 < absDiff && absDiff < 4) {
+			return false
+		}
+	}
+	return true
+}
+
+func indexOf[T any](slice []T, predicate func(T) bool) int {
+	for i, v := range slice {
+		if predicate(v) {
+			return i
+		}
+	}
+	return -1
+}
+
+func isSafeWithSkip(levels []int, skipIndex int) bool {
+	levels1 := append(levels[:skipIndex], levels[skipIndex+1:]...)
+	diffs1 := calcDiffs(levels1)
+	log.Printf("Levels with skip at index %d: %v\n", skipIndex, levels1)
+	if isInRange(diffs1) {
+		log.Printf("Safe with index %d skipped: %v\n", skipIndex, levels)
+		return true
+	}
+	levels2 := append(levels[:skipIndex+1], levels[skipIndex+2:]...)
+	diffs2 := calcDiffs(levels2)
+	log.Printf("Levels with skip at index %d: %v\n", skipIndex+1, levels2)
+	if isInRange(diffs2) {
+		log.Printf("Safe with index %d skipped: %v\n", skipIndex+1, levels)
+		return true
+	}
+	return false
 }
