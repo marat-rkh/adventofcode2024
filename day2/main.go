@@ -63,10 +63,7 @@ func Solve2BruteForce() {
 			continue
 		}
 		for i := 0; i < len(levels); i++ {
-			levelsWithSkip := make([]int, len(levels)-1)
-			copy(levelsWithSkip, levels[:i])
-			copy(levelsWithSkip[i:], levels[i+1:])
-			if isSafe(levelsWithSkip) {
+			if isSafeWithSkip(levels, i) {
 				log.Printf("Safe with skip at index %d\n", i)
 				safeCount++
 				break
@@ -108,6 +105,13 @@ func isInRange(diffs []int) bool {
 	return true
 }
 
+func isSafeWithSkip(levels []int, skipIndex int) bool {
+	levelsWithSkip := make([]int, len(levels)-1)
+	copy(levelsWithSkip, levels[:skipIndex])
+	copy(levelsWithSkip[skipIndex:], levels[skipIndex+1:])
+	return isSafe(levelsWithSkip)
+}
+
 func Solve2() {
 	log.SetOutput(io.Discard) // io.Discard or os.Stdout
 
@@ -127,33 +131,29 @@ func Solve2() {
 		}
 		log.Println("")
 		log.Printf("Checking: %v\n", levels)
-
 		diffs := calcDiffs(levels)
-		log.Printf("Diffs: %v\n", diffs)
 		posCount, negCount, _ := countSigns(diffs)
 		if posCount == len(diffs) || negCount == len(diffs) {
-			log.Println("All pos or all neg")
 			if isInRange(diffs) {
-				log.Printf("Safe: %v\n", levels)
+				log.Println("Safe")
+				safeCount++
+			} else if isSafeWithSkip(levels, 0) {
+				log.Println("Safe with skip at index 0")
+				safeCount++
+			} else if isSafeWithSkip(levels, len(levels)-1) {
+				log.Printf("Safe with skip at index %d\n", len(levels)-1)
 				safeCount++
 			}
-			continue
-		}
-		if posCount == len(diffs)-1 {
-			log.Println("All but one pos")
-			skipIndex := indexOf(diffs, func(diff int) bool { return diff == 0 || diff < 0 })
-			if isSafeWithSkips(levels, skipIndex) {
+		} else if posCount == len(diffs)-1 || negCount == len(diffs)-1 {
+			isMostlyPos := posCount == len(diffs)-1
+			skipIndex := indexOf(diffs, func(diff int) bool { return diff == 0 || (isMostlyPos && diff < 0 || !isMostlyPos && diff > 0) })
+			if isSafeWithSkip(levels, skipIndex) {
+				log.Printf("Safe with skip at index %d\n", skipIndex)
+				safeCount++
+			} else if isSafeWithSkip(levels, skipIndex+1) {
+				log.Printf("Safe with skip at index %d\n", skipIndex+1)
 				safeCount++
 			}
-			continue
-		}
-		if negCount == len(diffs)-1 {
-			log.Println("All but one neg")
-			skipIndex := indexOf(diffs, func(diff int) bool { return diff == 0 || diff > 0 })
-			if isSafeWithSkips(levels, skipIndex) {
-				safeCount++
-			}
-			continue
 		}
 	}
 	fmt.Println(safeCount)
@@ -166,16 +166,4 @@ func indexOf[T any](slice []T, predicate func(T) bool) int {
 		}
 	}
 	return -1
-}
-
-func isSafeWithSkips(levels []int, skipIndex int) bool {
-	return isSafeWithSkip(levels, skipIndex) || isSafeWithSkip(levels, skipIndex+1)
-}
-
-func isSafeWithSkip(levels []int, skipIndex int) bool {
-	levelsWithSkip := make([]int, len(levels)-1)
-	copy(levelsWithSkip, levels[:skipIndex])
-	copy(levelsWithSkip[skipIndex:], levels[skipIndex+1:])
-	diffs1 := calcDiffs(levelsWithSkip)
-	return isInRange(diffs1)
 }
