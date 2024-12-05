@@ -20,6 +20,20 @@ func Solve1() {
 	rules := lines[:separatorIndex]
 	updates := lines[separatorIndex+1:]
 
+	graph := calcTransitiveClosureGraph(rules)
+	validUpdates := make([][]string, 0)
+	for _, update := range updates {
+		nodes := strings.Split(update, ",")
+		isValid := isValidUpdate(nodes, graph)
+		if isValid {
+			validUpdates = append(validUpdates, nodes)
+		}
+	}
+	sum := sumMiddleNodes(validUpdates)
+	fmt.Println(sum)
+}
+
+func calcTransitiveClosureGraph(rules []string) map[string]map[string]bool {
 	// Initial graph of rules
 	graph := make(map[string]map[string]bool)
 	for _, rule := range rules {
@@ -71,24 +85,28 @@ func Solve1() {
 			dfs(root)
 		}
 	}
+	return graph
+}
 
-	// Validate updates
-	validUpdates := make([][]string, 0)
-	for _, update := range updates {
-		nodes := strings.Split(update, ",")
-		isValid := true
-		for i := 0; i < len(nodes)-1; i++ {
-			if _, ok := graph[nodes[i+1]][nodes[i]]; ok {
-				isValid = false
-				break
-			}
-		}
-		if isValid {
-			validUpdates = append(validUpdates, nodes)
+func isValidUpdate(update []string, relations map[string]map[string]bool) bool {
+	for i := 0; i < len(update)-1; i++ {
+		if !isGreaterByRelations(update[i], update[i+1], relations) {
+			return false
 		}
 	}
+	return true
+}
+
+func isGreaterByRelations(x, y string, relations map[string]map[string]bool) bool {
+	if _, ok := relations[y][x]; ok {
+		return false
+	}
+	return true
+}
+
+func sumMiddleNodes(nodes [][]string) int {
 	sum := 0
-	for _, update := range validUpdates {
+	for _, update := range nodes {
 		if len(update)%2 == 0 {
 			panic("Expecting the length of the update to be odd")
 		}
@@ -96,8 +114,39 @@ func Solve1() {
 		value, _ := strconv.Atoi(midNode)
 		sum += value
 	}
-	fmt.Println(sum)
+	return sum
 }
 
 func Solve2() {
+	data, err := os.ReadFile("day5/in1.txt")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	lines := strings.Split(string(data), "\n")
+	separatorIndex := lo.IndexOf(lines, "")
+	rules := lines[:separatorIndex]
+	updates := lines[separatorIndex+1:]
+
+	graph := calcTransitiveClosureGraph(rules)
+	invalidUpdates := make([][]string, 0)
+	for _, update := range updates {
+		nodes := strings.Split(update, ",")
+		isValid := isValidUpdate(nodes, graph)
+		if !isValid {
+			invalidUpdates = append(invalidUpdates, nodes)
+		}
+	}
+	for _, invalidUpdate := range invalidUpdates {
+		// Bubble sort in descending order
+		for i := 0; i < len(invalidUpdate); i++ {
+			for j := 0; j < len(invalidUpdate)-i-1; j++ {
+				if !isGreaterByRelations(invalidUpdate[j], invalidUpdate[j+1], graph) {
+					invalidUpdate[j], invalidUpdate[j+1] = invalidUpdate[j+1], invalidUpdate[j]
+				}
+			}
+		}
+	}
+	sum := sumMiddleNodes(invalidUpdates)
+	fmt.Println(sum)
 }
