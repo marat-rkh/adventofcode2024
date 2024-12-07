@@ -90,8 +90,10 @@ func calcTransitiveClosureGraph(rules []string) map[string]map[string]bool {
 
 func isValidUpdate(update []string, relations map[string]map[string]bool) bool {
 	for i := 0; i < len(update)-1; i++ {
-		if !isGreaterByRelations(update[i], update[i+1], relations) {
-			return false
+		for j := i + 1; j < len(update); j++ {
+			if !isGreaterByRelations(update[i], update[j], relations) {
+				return false
+			}
 		}
 	}
 	return true
