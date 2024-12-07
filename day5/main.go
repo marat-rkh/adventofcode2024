@@ -3,6 +3,7 @@ package day5
 import (
 	"fmt"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -144,14 +145,10 @@ func Solve2() {
 		}
 	}
 	for _, invalidUpdate := range invalidUpdates {
-		// Bubble sort in descending order
-		for i := 0; i < len(invalidUpdate); i++ {
-			for j := 0; j < len(invalidUpdate)-i-1; j++ {
-				if !isGreaterByRelations(invalidUpdate[j], invalidUpdate[j+1], graph) {
-					invalidUpdate[j], invalidUpdate[j+1] = invalidUpdate[j+1], invalidUpdate[j]
-				}
-			}
-		}
+		// Sort in descending order
+		sort.Slice(invalidUpdate, func(i, j int) bool {
+			return isGreaterByRelations(invalidUpdate[i], invalidUpdate[j], graph)
+		})
 	}
 	sum := sumMiddleNodes(invalidUpdates)
 	fmt.Println(sum)
