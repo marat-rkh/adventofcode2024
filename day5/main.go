@@ -20,7 +20,7 @@ func Solve1() {
 	rules := lines[:separatorIndex]
 	updates := lines[separatorIndex+1:]
 
-	graph := calcTransitiveClosureGraph(rules)
+	graph := calcDirectDependenciesGraph(rules)
 	validUpdates := make([][]string, 0)
 	for _, update := range updates {
 		nodes := strings.Split(update, ",")
@@ -33,8 +33,7 @@ func Solve1() {
 	fmt.Println(sum)
 }
 
-func calcTransitiveClosureGraph(rules []string) map[string]map[string]bool {
-	// Initial graph of rules
+func calcDirectDependenciesGraph(rules []string) map[string]map[string]bool {
 	graph := make(map[string]map[string]bool)
 	for _, rule := range rules {
 		rulePair := strings.Split(rule, "|")
@@ -45,6 +44,11 @@ func calcTransitiveClosureGraph(rules []string) map[string]map[string]bool {
 		}
 		neighbors[rulePair[1]] = true
 	}
+	return graph
+}
+
+func calcTransitiveClosureGraph(rules []string) map[string]map[string]bool {
+	graph := calcDirectDependenciesGraph(rules)
 
 	// Find root nodes
 	allNodes, endNodes := make(map[string]bool), make(map[string]bool)
@@ -130,7 +134,7 @@ func Solve2() {
 	rules := lines[:separatorIndex]
 	updates := lines[separatorIndex+1:]
 
-	graph := calcTransitiveClosureGraph(rules)
+	graph := calcDirectDependenciesGraph(rules)
 	invalidUpdates := make([][]string, 0)
 	for _, update := range updates {
 		nodes := strings.Split(update, ",")
