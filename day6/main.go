@@ -46,12 +46,31 @@ func Solve1() {
 	}
 	direction0 := field[i0][j0]
 
-	// TODO traverse the field 4 times in each direction and calc closest obstructions for each cell
-	// TODO using closest obstructions and trace, fill a set of looping obstructions in the loop below
+	trace := walk(field, i0, j0, direction0)
+	if trace == nil {
+		panic("unexpected loop")
+	}
+	logField(field, trace)
+
+	visitedCount := 0
+	for i := 0; i < len(field); i++ {
+		for j := 0; j < len(field[i]); j++ {
+			if _, ok := trace[[2]int{i, j}]; ok {
+				visitedCount++
+			}
+		}
+	}
+	fmt.Println(visitedCount)
+}
+
+func walk(field [][]rune, i0 int, j0 int, direction0 rune) map[[2]int]mapset.Set[rune] {
 	i, j := i0, j0
 	direction := direction0
 	trace := make(map[[2]int]mapset.Set[rune])
 	for 0 <= i && i < len(field) && 0 <= j && j < len(field[0]) {
+		if marks, ok := trace[[2]int{i, j}]; ok && marks.Has(direction) {
+			return nil
+		}
 		switch direction {
 		case Up:
 			i = moveUp(field, i, j, trace)
@@ -77,17 +96,7 @@ func Solve1() {
 			panic("invalid direction")
 		}
 	}
-	logField(field, trace)
-
-	visitedCount := 0
-	for i := 0; i < len(field); i++ {
-		for j := 0; j < len(field[i]); j++ {
-			if _, ok := trace[[2]int{i, j}]; ok {
-				visitedCount++
-			}
-		}
-	}
-	fmt.Println(visitedCount)
+	return trace
 }
 
 func moveUp(field [][]rune, i, j int, trace map[[2]int]mapset.Set[rune]) int {
@@ -146,7 +155,7 @@ func logField(field [][]rune, trace map[[2]int]mapset.Set[rune]) {
 	fieldWithTrace.WriteRune('\n')
 	for i := 0; i < len(field); i++ {
 		for j := 0; j < len(field[i]); j++ {
-			if field[i][j] == Empty {
+			if trace != nil && field[i][j] == Empty {
 				if trace, ok := trace[[2]int{i, j}]; ok {
 					if (trace.Has(Up) || trace.Has(Down)) && (trace.Has(Left) || trace.Has(Right)) {
 						fieldWithTrace.WriteRune(MarkCross)
@@ -166,4 +175,42 @@ func logField(field [][]rune, trace map[[2]int]mapset.Set[rune]) {
 		fieldWithTrace.WriteRune('\n')
 	}
 	log.Println(fieldWithTrace.String())
+}
+
+func Solve2() {
+	log.SetOutput(os.Stdout)
+	data, err := os.ReadFile("day6/in1.txt")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	lines := strings.Split(string(data), "\n")
+	field := lo.Map(lines, func(line string, _ int) []rune {
+		return []rune(line)
+	})
+
+	i0, j0 := 0, 0
+	for i := 0; i < len(field); i++ {
+		for j := 0; j < len(field[i]); j++ {
+			if field[i][j] == Up || field[i][j] == Right || field[i][j] == Down || field[i][j] == Left {
+				i0, j0 = i, j
+			}
+		}
+	}
+	direction0 := field[i0][j0]
+
+	loopCount := 0
+	for i := 0; i < len(field); i++ {
+		for j := 0; j < len(field[i]); j++ {
+			if field[i][j] == Empty {
+				field[i][j] = Obstruction
+				if walk(field, i0, j0, direction0) == nil {
+					loopCount++
+				}
+				field[i][j] = Empty
+			}
+		}
+	}
+	// Right answer: 1984
+	fmt.Println(loopCount)
 }
