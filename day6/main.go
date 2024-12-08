@@ -46,6 +46,8 @@ func Solve1() {
 	}
 	direction0 := field[i0][j0]
 
+	// TODO traverse the field 4 times in each direction and calc closest obstructions for each cell
+	// TODO using closest obstructions and trace, fill a set of looping obstructions in the loop below
 	i, j := i0, j0
 	direction := direction0
 	trace := make(map[[2]int]mapset.Set[rune])
