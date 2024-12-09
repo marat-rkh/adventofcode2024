@@ -4,20 +4,20 @@ import (
 	"fmt"
 	"math"
 	"math/big"
-	"os"
 	"strconv"
 	"strings"
 
+	"github.com/marat-rkh/adventofcode2024/util"
 	"github.com/samber/lo"
 )
 
 func Solve1() {
-	data, err := os.ReadFile("day7/in1.txt")
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	lines := strings.Split(string(data), "\n")
+	lines := util.ReadInput("day7/in1.txt")
+	res := DoSolve1(lines)
+	fmt.Println(res)
+}
+
+func DoSolve1(lines []string) int64 {
 	res := int64(0)
 	for _, line := range lines {
 		pair := strings.Split(line, ": ")
@@ -30,7 +30,7 @@ func Solve1() {
 			res += testValue
 		}
 	}
-	fmt.Println(res)
+	return res
 }
 
 func canCombine(testValue int64, operands []int64) bool {
@@ -55,12 +55,12 @@ func canCombine(testValue int64, operands []int64) bool {
 }
 
 func Solve2() {
-	data, err := os.ReadFile("day7/in1.txt")
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	lines := strings.Split(string(data), "\n")
+	lines := util.ReadInput("day7/in1.txt")
+	res := DoSolve2(lines)
+	fmt.Println(res)
+}
+
+func DoSolve2(lines []string) int64 {
 	res := int64(0)
 	for _, line := range lines {
 		pair := strings.Split(line, ": ")
@@ -73,7 +73,7 @@ func Solve2() {
 			res += testValue
 		}
 	}
-	fmt.Println(res)
+	return res
 }
 
 func canCombine2(testValue int64, operands []int64) bool {
