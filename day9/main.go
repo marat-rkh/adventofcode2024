@@ -7,17 +7,16 @@ import (
 )
 
 func Solve1() {
-	lines := util.ReadInput("day9/in1.txt")
-	res := DoSolve1(lines)
+	input := ReadInput("day9/in1.txt")
+	res := DoSolve1(input)
 	fmt.Println(res)
 }
 
-func ReadInput(file string) []string {
-	return util.ReadInput(file)
+func ReadInput(file string) []rune {
+	return []rune(util.ReadInput(file)[0])
 }
 
-func DoSolve1(lines []string) int {
-	input := []rune(lines[0])
+func DoSolve1(input []rune) int {
 	res := 0
 	resIndex := 0
 	lastFileIndex := len(input) - 1
