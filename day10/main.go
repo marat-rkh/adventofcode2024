@@ -56,6 +56,22 @@ func traverse(cur [2]int, graph [][]int, trails map[[2]int]*mapset.Set[[2]int]) 
 		trails[cur] = &trailEnds
 		return
 	}
+	moves := calculateMoves(cur, graph)
+	for _, move := range moves {
+		traverse(move, graph, trails)
+	}
+	trailEnds := mapset.New[[2]int]()
+	for _, move := range moves {
+		if neighborTrailEnds, ok := trails[move]; ok {
+			neighborTrailEnds.Each(func(trailEnd [2]int) {
+				trailEnds.Put(trailEnd)
+			})
+		}
+	}
+	trails[cur] = &trailEnds
+}
+
+func calculateMoves(cur [2]int, graph [][]int) [][2]int {
 	moves := [][2]int{}
 	left := [2]int{cur[0], cur[1] - 1}
 	if canMove(cur, left, graph) {
@@ -73,18 +89,7 @@ func traverse(cur [2]int, graph [][]int, trails map[[2]int]*mapset.Set[[2]int]) 
 	if canMove(cur, down, graph) {
 		moves = append(moves, down)
 	}
-	for _, move := range moves {
-		traverse(move, graph, trails)
-	}
-	trailEnds := mapset.New[[2]int]()
-	for _, move := range moves {
-		if neighborTrailEnds, ok := trails[move]; ok {
-			neighborTrailEnds.Each(func(trailEnd [2]int) {
-				trailEnds.Put(trailEnd)
-			})
-		}
-	}
-	trails[cur] = &trailEnds
+	return moves
 }
 
 func canMove(cur [2]int, next [2]int, graph [][]int) bool {
@@ -94,4 +99,54 @@ func canMove(cur [2]int, next [2]int, graph [][]int) bool {
 		return nextHeight-curHeight == 1
 	}
 	return false
+}
+
+func Solve2(file string) int {
+	input := ReadInput(file)
+	res := DoSolve2(input)
+	return res
+}
+
+func DoSolve2(input [][]int) int {
+	trails := make(map[[2]int]int)
+	for i := 0; i < len(input); i++ {
+		for j := 0; j < len(input[i]); j++ {
+			if input[i][j] == 0 {
+				traverse2([2]int{i, j}, input, trails)
+			}
+		}
+	}
+	res := 0
+	for i := 0; i < len(input); i++ {
+		for j := 0; j < len(input[i]); j++ {
+			if input[i][j] == 0 {
+				if trailsCount, ok := trails[[2]int{i, j}]; ok {
+					res += trailsCount
+				}
+			}
+		}
+	}
+	return res
+}
+
+func traverse2(cur [2]int, graph [][]int, trails map[[2]int]int) {
+	// Here we rely on the fact that graph is acyclic
+	if _, ok := trails[cur]; ok {
+		return
+	}
+	if graph[cur[0]][cur[1]] == 9 {
+		trails[cur] = 1
+		return
+	}
+	moves := calculateMoves(cur, graph)
+	for _, move := range moves {
+		traverse2(move, graph, trails)
+	}
+	trailsCount := 0
+	for _, move := range moves {
+		if neighborTrailsCount, ok := trails[move]; ok {
+			trailsCount += neighborTrailsCount
+		}
+	}
+	trails[cur] = trailsCount
 }
