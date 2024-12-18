@@ -24,7 +24,7 @@ func TestSolve1In1(t *testing.T) {
 
 func TestSolve2In1(t *testing.T) {
 	res := day11.Solve2("in1.txt")
-	expected := 183620
+	expected := 220377651399268
 	if res != expected {
 		t.Errorf("Expected %d, got %d", expected, res)
 	}

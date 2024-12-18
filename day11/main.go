@@ -19,32 +19,35 @@ func Solve2(file string) int {
 
 func solve(file string, iterations int) int {
 	curNums := ReadInput(file)
-	nextNums := []int64{}
-	splitCache := map[int64][2]int64{}
-	mul2024Cache := map[int64]int64{}
-	for i := 0; i < iterations; i++ {
-		for _, num := range curNums {
-			if num == 0 {
-				nextNums = append(nextNums, 1)
-			} else if split, ok := splitCache[num]; ok {
-				nextNums = append(nextNums, split[0], split[1])
-			} else if mul2024, ok := mul2024Cache[num]; ok {
-				nextNums = append(nextNums, mul2024)
-			} else if digitsCount := countDigits(num); digitsCount%2 == 0 {
-				divisor := int64(math.Pow10(digitsCount / 2))
-				num1, num2 := num/divisor, num%divisor
-				nextNums = append(nextNums, num1, num2)
-				splitCache[num] = [2]int64{num1, num2}
-			} else {
-				mul2024 := num * 2024
-				nextNums = append(nextNums, mul2024)
-				mul2024Cache[num] = mul2024
-			}
-		}
-		curNums = nextNums
-		nextNums = []int64{}
+	res := 0
+	cache := make(map[[2]int64]int)
+	for _, num := range curNums {
+		res += processNum(num, iterations, cache)
 	}
-	return len(curNums)
+	return res
+}
+
+func processNum(num int64, iterations int, cache map[[2]int64]int) int {
+	if iterations == 0 {
+		return 1
+	}
+	if count, ok := cache[[2]int64{num, int64(iterations)}]; ok {
+		return count
+	}
+	count := 0
+	if num == 0 {
+		count += processNum(1, iterations-1, cache)
+	} else if digitsCount := countDigits(num); digitsCount%2 == 0 {
+		divisor := int64(math.Pow10(digitsCount / 2))
+		num1, num2 := num/divisor, num%divisor
+		count += processNum(num1, iterations-1, cache)
+		count += processNum(num2, iterations-1, cache)
+	} else {
+		mul2024 := num * 2024
+		count += processNum(mul2024, iterations-1, cache)
+	}
+	cache[[2]int64{num, int64(iterations)}] = count
+	return count
 }
 
 func ReadInput(file string) []int64 {
