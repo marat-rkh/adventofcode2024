@@ -52,14 +52,17 @@ pub fn build(b: *std.Build) void {
 
     // Creates a step for unit testing. This only builds the test executable
     // but does not run it.
-    const test_day13 = b.addTest(.{
+    const run_test_day13 = b.addRunArtifact(b.addTest(.{
         .root_source_file = b.path("src/day13/solution.zig"),
         .target = target,
         .optimize = optimize,
-    });
+    }));
+    b.step("day13", "Run tests for day 13").dependOn(&run_test_day13.step);
 
-    const run_test_day13 = b.addRunArtifact(test_day13);
-
-    const test_step = b.step("day13", "Run test for day 13");
-    test_step.dependOn(&run_test_day13.step);
+    const run_test_day14 = b.addRunArtifact(b.addTest(.{
+        .root_source_file = b.path("src/day14/solution.zig"),
+        .target = target,
+        .optimize = optimize,
+    }));
+    b.step("day14", "Run tests for day 14").dependOn(&run_test_day14.step);
 }
